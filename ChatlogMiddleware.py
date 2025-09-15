@@ -1,5 +1,6 @@
 from fastmcp import FastMCP
 from fastmcp.server.middleware import Middleware, MiddlewareContext
+import re  # 添加这行导入语句
 
 class LoggingMiddleware(Middleware):
     def remove_first_parentheses(self,text):

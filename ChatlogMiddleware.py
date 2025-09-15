@@ -2,6 +2,11 @@ from fastmcp import FastMCP
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 
 class LoggingMiddleware(Middleware):
+    def remove_first_parentheses(text):
+    # 模式 \(.*?\) 匹配第一个遇到的括号及其内容
+    # count=1 表示只替换第一次匹配到的内容
+    return re.sub(r'\(.*?\)', '', text, count=1)
+
     async def on_message(self, context: MiddlewareContext, call_next):
         print(f"[LOG] Received request: {context.method} {context.message}")
         try:
@@ -14,14 +19,18 @@ class LoggingMiddleware(Middleware):
                     if hasattr(item, 'text'):
                         # 1. 按照 \n\n 进行分割
                         segments = item.text.split('\n\n')
+
                         
                         # 2. 过滤掉包含 ![图片] 或 ![动画表情] 的分割项
                         filtered_segments = [
                             segment for segment in segments 
                             if '![图片]' not in segment and '![动画表情]' not in segment
                         ]
+
+                        # 3 移除第一个括号及其内容
+                        filtered_segments = [self.remove_first_parentheses(segment) for segment in filtered_segments]
                         
-                        # 3. 重新拼接处理后的内容
+                        # 4. 重新拼接处理后的内容
                         processed_text = '\n\n'.join(filtered_segments)
                         
                         # 更新内容的 text 属性

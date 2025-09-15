@@ -25,7 +25,7 @@ class LoggingMiddleware(Middleware):
                         # 2. 过滤掉包含 ![图片] 或 ![动画表情] 的分割项
                         filtered_segments = [
                             segment for segment in segments 
-                            if '![图片]' not in segment and '![动画表情]' not in segment
+                            if '![图片]' not in segment and '![动画表情]' not in segment and '[链接|' not in segment  and '![视频]' not in segment and 'https://' not in segment 
                         ]
 
                         # 3 移除第一个括号及其内容

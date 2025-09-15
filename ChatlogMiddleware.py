@@ -2,7 +2,7 @@ from fastmcp import FastMCP
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 
 class LoggingMiddleware(Middleware):
-    def remove_first_parentheses(text):
+    def remove_first_parentheses(self,text):
         # 模式 \(.*?\) 匹配第一个遇到的括号及其内容
         # count=1 表示只替换第一次匹配到的内容
         return re.sub(r'\(.*?\)', '', text, count=1)

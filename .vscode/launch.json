@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: FastMCP App",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/ChatlogMiddleware.py", // 替换为你的FastMCP应用入口文件
+            "args": [], // 如果需要命令行参数，在此添加
+            "console": "integratedTerminal",
+            "justMyCode": false // 建议初始尝试设置为false，以捕获可能进入库代码的断点
+        }
+    ]
+}

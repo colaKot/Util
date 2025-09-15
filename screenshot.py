@@ -48,13 +48,17 @@ def make_thumb():
                                     num = 9
                                     row = 3
                                     line = 3
+                                elif showtime < 10 and showtime > 1:
+                                    num = 1
+                                    row = 1
+                                    line = 1
                                 elif showtime < 1:
                                     print("short_"+str(showtime)+"_"+str(outputname2))
                                     continue
 
-                                showtime2 = int(showtime/num+1)
+                                showtime2 = int(showtime/num)
 
-                                nowtime = 5
+                                nowtime = 1
                                 for i in range(row):
                                     for j in range(line):
                                         shell = 'ffmpeg -y -hwaccel dxva2 -ss %s -i "%s" -f image2  -vf "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2" -frames 1 "%s_img_%s_%s.jpg"' % (

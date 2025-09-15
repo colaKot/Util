@@ -2,7 +2,7 @@ from fastmcp import FastMCP
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 import re  # 添加这行导入语句
 
-class LoggingMiddleware(Middleware):
+class ChatlogMiddleware(Middleware):
     def remove_first_parentheses(self,text):
         # 模式 \(.*?\) 匹配第一个遇到的括号及其内容
         # count=1 表示只替换第一次匹配到的内容
@@ -52,7 +52,7 @@ proxy = FastMCP.as_proxy(
 )
 
 # 将中间件添加到代理服务器
-proxy.add_middleware(LoggingMiddleware())
+proxy.add_middleware(ChatlogMiddleware())
 
 if __name__ == "__main__":
     proxy.run(transport='stdio')

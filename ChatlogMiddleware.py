@@ -3,9 +3,9 @@ from fastmcp.server.middleware import Middleware, MiddlewareContext
 
 class LoggingMiddleware(Middleware):
     def remove_first_parentheses(text):
-    # 模式 \(.*?\) 匹配第一个遇到的括号及其内容
-    # count=1 表示只替换第一次匹配到的内容
-    return re.sub(r'\(.*?\)', '', text, count=1)
+        # 模式 \(.*?\) 匹配第一个遇到的括号及其内容
+        # count=1 表示只替换第一次匹配到的内容
+        return re.sub(r'\(.*?\)', '', text, count=1)
 
     async def on_message(self, context: MiddlewareContext, call_next):
         print(f"[LOG] Received request: {context.method} {context.message}")

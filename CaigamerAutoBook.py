@@ -50,6 +50,10 @@ def login_website():
     else:
         print("未找到关闭按钮")
 
+
+    #等待2秒
+    time.sleep(2)
+
     # 方式1：通过ID定位最可靠
     sign_button = tab.ele('#sg_sign')
     if sign_button:  # 检查元素是否存在

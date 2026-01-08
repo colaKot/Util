@@ -40,6 +40,8 @@ class ChatlogMiddleware(Middleware):
                             and '最佳金句' not in segment 
                             and '视频号' not in segment
                             and 'http://' not in segment
+                            and '本群讨论风格' not in segment
+                            and '搞笑发言' not in segment
                         ]
 
                         # 3 移除第一个括号及其内容

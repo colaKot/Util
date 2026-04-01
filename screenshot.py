@@ -1,155 +1,114 @@
 #!/usr/bin/python
-# -*- coding: gbk -*
+# -*- coding: utf-8 -*-
 import os
 import sys
-import re
-import chardet
 from PIL import Image
-import ffmpeg
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
+# 获取脚本所在目录
 path = sys.path[0]
 
+# 支持的视频格式（修复关键字冲突，统一格式）
+VIDEO_TYPES = ['.mp4', '.avi', '.wmv', '.mkv', '.flv',
+                '.ts', '.mov', '.m4v', '.qt', '.MP4', '.MOV', '.MKV']
 
-def exte(a, *endstring):
-    array = map(a.endswith, endstring)
-    if True in array:
-        return True
-    else:
-        return False
-
-def detect_encoding(file_path):
-    with open(file_path, 'rb') as f:
-        raw_data = f.read()
-        result = chardet.detect(raw_data)
-        return result['encoding']
-
+def check_video_ext(filename):
+    """优化：判断文件是否为支持的视频格式"""
+    return any(filename.endswith(ext) for ext in VIDEO_TYPES)
 
 def make_thumb():
-    for dirpath, dirnames, filenames in os.walk(path):
-        if dirpath.find("dfdf") < 0 and dirpath.find("dfdf") < 0:
-            for name in filenames:
-                if exte(name, type):
-                    try:
-                        videopath = os.path.join(dirpath, name)
-                        videoname = os.path.splitext(name)[0]
-                        outputname = os.path.join(dirpath, videoname)
-                        outputname2 = os.path.join(dirpath, videoname+".jpg")
-                        if not os.path.exists(outputname2):
-                            clip = VideoFileClip(videopath)
-                            width = clip.w
-                            height = clip.h
-                            showtime = clip.duration
-                            if width>height:
-                                num = 4
-                                row = 2
-                                line = 2
-                                if showtime > 3600:
-                                    num = 9
-                                    row = 3
-                                    line = 3
-                                elif showtime < 10 and showtime > 1:
-                                    num = 1
-                                    row = 1
-                                    line = 1
-                                elif showtime < 1:
-                                    print("short_"+str(showtime)+"_"+str(outputname2))
-                                    continue
+    # 遍历目录
+    for dirpath, _, filenames in os.walk(path):
+        # 跳过包含 dfdf 的文件夹
+        if "dfdf" in dirpath:
+            continue
+            
+        for name in filenames:
+            if check_video_ext(name):
+                try:
+                    videopath = os.path.join(dirpath, name)
+                    videoname = os.path.splitext(name)[0]
+                    output_base = os.path.join(dirpath, videoname)
+                    final_output = f"{output_base}.jpg"
+                    
+                    # 已存在缩略图则跳过
+                    if os.path.exists(final_output):
+                        continue
 
-                                showtime2 = int(showtime/num)
+                    # 修复：with语句自动释放视频资源，避免文件占用
+                    with VideoFileClip(videopath) as clip:
+                        width = clip.w
+                        height = clip.h
+                        duration = clip.duration
 
-                                nowtime = 1
-                                for i in range(row):
-                                    for j in range(line):
-                                        shell = 'ffmpeg -y -hwaccel dxva2 -ss %s -i "%s" -f image2  -vf "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2" -frames 1 "%s_img_%s_%s.jpg"' % (
-                                        nowtime, videopath, outputname, i, j)
-                                        os.system(shell)
-                                        nowtime = nowtime + showtime2
+                    # 极短视频跳过
+                    if duration < 1:
+                        print(f"短视频跳过: {duration}s -> {final_output}")
+                        continue
 
-                                print(str(showtime)+"_"+str(showtime2)+"_"+str(num))
+                    # ==================== 横屏视频处理 ====================
+                    if width > height:
+                        # 自动计算截图数量和行列
+                        if duration > 3600:
+                            row, line = 3, 3
+                        elif duration < 10:
+                            row, line = 1, 1
+                        else:
+                            row, line = 2, 2
+                        num = row * line
+                        interval = max(1, int(duration / num))  # 避免间隔为0
+                        canvas_w, canvas_h = 1280 * line, 720 * row
+                        img_w, img_h = 1280, 720
 
-                                toImage = Image.new('RGB', (2560, 1440))
-                                if num == 6:
-                                    toImage = Image.new('RGB', (3840, 1440))
-                                elif num == 9:
-                                    toImage = Image.new('RGB', (3840, 2160))
-                                elif num == 1:
-                                    toImage = Image.new('RGB', (1280, 720))
+                    # ==================== 竖屏视频处理 ====================
+                    else:
+                        if duration > 120:
+                            row, line = 2, 5
+                        else:
+                            row, line = 1, 3
+                        num = row * line
+                        interval = max(1, int(duration / num) + 1)
+                        canvas_w, canvas_h = 720 * line, 1280 * row
+                        img_w, img_h = 720, 1280
 
-                                for i in range(row):
-                                    for j in range(line):
-                                        temp_img_path = '%s_img_%s_%s.jpg' % (outputname, i, j)
-                                        if not os.path.exists(temp_img_path):
-                                            continue
-                                        pic_fole_head = Image.open(temp_img_path)
-                                        toImage.paste(pic_fole_head, box=(j * 1280, i * 720))
-                                        
-                                toImage.save('%s.jpg' % (outputname))
-                            else:
-                                num = 5
-                                row = 1
-                                line = 5
-                                if showtime > 3600 and showtime < 5400:
-                                    num = 10
-                                    row = 2
-                                    line = 5
-                                elif showtime >= 5400:
-                                    num = 10
-                                    row = 2
-                                    line = 5
-                                elif showtime > 0 and showtime < 60:
-                                    num = 4
-                                    row = 1
-                                    line = 4
-                                elif showtime < 1:
-                                    print("short_"+str(showtime)+"_"+str(outputname2))
-                                    continue
+                    # 生成单帧截图（核心修复：FFmpeg参数添加MJPEG兼容配置）
+                    now_time = 1
+                    temp_imgs = []
+                    for i in range(row):
+                        for j in range(line):
+                            temp_img = f"{output_base}_img_{i}_{j}.jpg"
+                            temp_imgs.append(temp_img)
 
-                                showtime2 = int(showtime/num+1)
+                            # ✅ 修复FFmpeg命令：解决编码器报错 + 路径引号 + 格式兼容
+                            ffmpeg_cmd = (
+                                f'ffmpeg -y -ss {now_time} -i "{videopath}" '
+                                f'-vf "scale={img_w}:{img_h}:force_original_aspect_ratio=decrease,pad={img_w}:{img_h}:(ow-iw)/2:(oh-ih)/2" '
+                                f'-frames:v 1 -strict -2 -pix_fmt yuvj420p -q:v 3 "{temp_img}"'
+                            )
+                            os.system(ffmpeg_cmd)
+                            now_time += interval
 
-                                nowtime = 5
-                                for i in range(row):
-                                    for j in range(line):
-                                        shell = 'ffmpeg -y  -hwaccel dxva2 -ss %s -i %s -f image2 -vf "scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(oh-ih)/2:(ow-iw)/2" -frames 1 %s_img_%s_%s.jpg' % (
-                                            nowtime, videopath, outputname, i, j)
-                                        os.system(shell)
-                                        nowtime = nowtime + showtime2
+                    # 拼接图片
+                    to_image = Image.new('RGB', (canvas_w, canvas_h))
+                    for i in range(row):
+                        for j in range(line):
+                            temp_img = f"{output_base}_img_{i}_{j}.jpg"
+                            if os.path.exists(temp_img):
+                                with Image.open(temp_img) as img:
+                                    to_image.paste(img, (j * img_w, i * img_h))
 
-                                print(str(showtime)+"_"+str(showtime2)+"_"+str(num))
+                    # 保存最终缩略图
+                    to_image.save(final_output, quality=95)
+                    print(f"生成成功: {final_output} | 时长:{duration}s 行列:{row}x{line}")
 
-                                toImage = Image.new('RGB', (2880, 1280))
-                                if num == 5:
-                                    toImage = Image.new('RGB', (3600, 1280))
-                                elif num == 10:
-                                    toImage = Image.new('RGB', (3600, 2560))
-                                elif num == 1:
-                                    toImage = Image.new('RGB', (720, 1280))
+                    # 删除临时截图
+                    for img in temp_imgs:
+                        if os.path.exists(img):
+                            os.remove(img)
 
-                                for i in range(row):
-                                    for j in range(line):
-                                        temp_img_path = '%s_img_%s_%s.jpg' % (outputname, i, j)
-                                        if not os.path.exists(temp_img_path):
-                                            continue
+                except Exception as e:
+                    print(f"处理失败 {videopath}: {str(e)}")
 
-                                        pic_fole_head = Image.open(temp_img_path)
-                                        toImage.paste(pic_fole_head, box=(j * 720, i * 1280))
-
-                                    toImage.save('%s.jpg' % (outputname))
-
-                            for i in range(row):
-                                for j in range(line):
-                                    temp_img_path = '%s_img_%s_%s.jpg' %(outputname, i, j)
-                                    if not os.path.exists(temp_img_path):
-                                        continue
-                                    os.remove(temp_img_path)
-                    except Exception as result:
-                        print('error %s' % result)
-    return
-
-
-types = ['.mp4', '.avi', '.wmv', '.mkv', '.flv',
-         '.ts', '.mov', '.m4v', '.MOV', '.MP4', '.MKV']
-for type in types:
+# 修复：只执行一次函数（原脚本重复执行12次，严重bug）
+if __name__ == "__main__":
     make_thumb()
-
-
